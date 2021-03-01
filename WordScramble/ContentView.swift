@@ -11,9 +11,12 @@ struct ContentView: View {
     @State private var usedWords = [String]()
     @State private var rootWord = ""
     @State private var newWord = ""
+    
     @State private var errorTitle = ""
     @State private var errorMessage = ""
     @State private var showingError = false
+    
+    @State private var gameScore = 0
     
     var body: some View {
         NavigationView {
@@ -28,9 +31,15 @@ struct ContentView: View {
                     
                     Text($0)
                 }
+                
+                Text("Score: \(gameScore)")
             }
             .navigationBarTitle(rootWord)
-            .onAppear(perform: startGame)
+            .navigationBarItems(leading:
+                                    Button(action: startGame) {
+                                        Text("New game")
+                                    }
+            )
             .alert(isPresented: $showingError) {
                 Alert(title: Text(errorTitle), message: Text(errorMessage), dismissButton: .default(Text("OK")))
             }
@@ -61,6 +70,7 @@ struct ContentView: View {
         }
         
         usedWords.insert(answer, at: 0)
+        gameScore += answer.count
         newWord = ""
     }
     
@@ -70,6 +80,8 @@ struct ContentView: View {
                 let allWords = startWords.components(separatedBy: "\n")
                 
                 rootWord = allWords.randomElement() ?? "silkworm"
+                usedWords = [String]()
+                gameScore = 0
                 
                 return
             }
@@ -97,6 +109,10 @@ struct ContentView: View {
     }
     
     func isReal(word: String) -> Bool {
+        guard word.count >= 3 else {
+            return false
+        }
+        
         let checker = UITextChecker()
         let range = NSRange(location: 0, length: word.utf16.count)
         let misspelledRange = checker.rangeOfMisspelledWord(in: word, range: range, startingAt: 0, wrap: false, language: "en")
